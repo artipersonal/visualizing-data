@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>United States GDP</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      background-color: rgb(115, 127, 142);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .bar {
+      fill: rgb(80, 161, 230);
+    }
+
+    .bar:hover {
+      fill: white;
+    }
+
+    svg {
+      background-color: white;
+      box-shadow: 0 0 10px black;
+    }
+
+    #tooltip {
+      position: absolute;
+    }
+
+    .tooltips {
+      box-shadow: 0 0 10px black;
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    const url = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json';
+    fetch(url)
+      .then(raw => {
+        return raw.json();
+      })
+      .then(data => {
+        const dataset = data.data;
+        const w = 800;
+        const h = 500;
+        const padding = 100;
+        const quarter = ['Q1', 'Q2', 'Q3', 'Q4'];
+        let datadate = [];
+        let datagdp = [];
+
+        dataset.forEach(function (val) {
+          datadate.push(val[0]);
+          datagdp.push(val[1]);
+        });
+
+
+        console.log(JSON.stringify(dataset));
+        console.log('this is all the dates:', datadate);
+        console.log('this is all the gdp: ', datagdp);
+
+
+        const svg = d3.select('body')
+          .append('svg')
+          .attr('width', w)
+          .attr('height', h)
+          .attr('id', 'title');
+
+        const xScaleTime = d3
+          .scaleTime()
+          .domain([d3.min(dataset, (d) => new Date(d[0])), d3.max(dataset, (d) => new Date(d[0]))])
+          .range([padding, w - padding]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(dataset, (d) => d[1])])
+          .range([h - padding, padding]);
+
+        xAxis = d3.axisBottom(xScaleTime);
+
+        yAxis = d3.axisLeft(yScale);
+
+        svg.selectAll('rect')
+          .data(dataset)
+          .enter()
+          .append('rect')
+          .attr('class', 'bar')
+          .attr('data-date', (d, i) => datadate[i])
+          .attr('data-gdp', (d, i) => datagdp[i])
+          .attr('x', (d, i) => xScaleTime(new Date(d[0])))//(w - 2 * padding) / datadate.length * i + padding)
+          .attr('y', (d, i) => yScale(datagdp[i]))
+          .attr('width', 2)
+          .attr('height', (d, i) => h - yScale(datagdp[i]) - padding)
+          .style('stroke', 'white')
+          .style('stroke-width', '0.2')
+          .on('mouseover', (d, i) => {
+            svg2.style('left', (w - 2 * padding) / datadate.length * datadate.findIndex(el => el === i[0]) + padding + 100)
+              .attr('data-date', i[0])
+              .style('visibility', 'visible')
+              .transition()
+              .duration(1000)
+              .attr('opacity', '1');
+            texts1
+              .text(`${i[0].slice(0, 4)} ${quarter[Math.floor(parseInt(i[0].slice(5, 7)) / 3)]}`)
+              .style('left', (w - 2 * padding) / datadate.length * datadate.findIndex(el => el === i[0]) + padding + 100);
+            texts2
+              .text(`\$${new Intl.NumberFormat("de-DE").format(i[1].toFixed(1))}`)
+              .style('left', (w - 2 * padding) / datadate.length * datadate.findIndex(el => el === i[0]) + padding + 100);
+
+          })
+          .on('mouseout', (d, i) => {
+            svg2
+              .style('visibility', 'hidden')
+              .attr('opacity', '0');
+          });
+
+        // selectAll svg, data+enter_append and display only thouse which activated
+
+        // directly input x and y attr within mouseOn for svg
+        const svg2 = d3.select('body')
+          .append('svg')
+          //.data(dataset)
+          //.attr('data-date', datadate)
+          //.attr('data-gdp', datagdp)
+          .attr('width', w)
+          .attr('height', h)
+          .attr('id', 'tooltip')
+          .attr('x', '100')
+          .attr('y', h - 2 * padding)
+          .attr('width', '90')
+          .attr('height', '40')
+          .style('border', '1px solid black')
+          .style('border-radius', '3px')
+          .style('background-color', 'rgb(170, 193, 222)')
+          .attr('visibility', 'hidden')
+          .attr('opacity', '0');
+
+
+        const texts1 = svg2.append('text')
+          .attr('x', '20%')
+          .attr('y', '35%')
+          .attr('font-size', '15px');
+
+        const texts2 = svg2.append('text')
+          .attr('x', '20%')
+          .attr('y', '85%')
+          .attr('font-size', '15px');
+
+        svg.append('g')
+          .attr('transform', `translate(0,${h - padding})`)
+          .attr('id', 'x-axis')
+          .call(xAxis);
+
+        svg.append('g')
+          .attr('transform', `translate(${padding}, 0)`)
+          .attr('id', 'y-axis')
+          .call(yAxis);
+
+        svg.append('text')
+          .attr('x', w * 0.4)
+          .attr('y', h - padding / 3)
+          .attr('font-size', '15px')
+          .text('More Information: http://www.bea.gov/national/pdf/nipaguid.pdf');
+
+        svg.append('text')
+          .attr('x', w * 0.35)
+          .attr('y', padding / 2)
+          .attr('font-size', '30px')
+          .text('United States GDP');
+
+        svg.append('text')
+          .attr('x', padding + 20)
+          .attr('y', h / 2)
+          .attr('font-size', '15px')
+          .text('Gross Domestic Product')
+          .attr('transform-origin', padding + 20, h / 2)
+          .attr('transform', `rotate(-90)`);
+      })
+  </script>
+</body>
+
+</html>
