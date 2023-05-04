@@ -72,6 +72,8 @@
         const [monthMin, monthMax] = [d3.min(data.monthlyVariance, d => d.month), d3.max(data.monthlyVariance, d => d.month)]
         const parse = d3.timeParse('%m');
         const format = d3.timeFormat('%B');
+        const parseX = d3.timeParse('%Y');
+        const formatX = d3.timeFormat('%Y');
         const colors = [[2.8, 'rgb(78,117,175)'], [3.9, 'rgb(127,172,205)'], [5.0, 'rgb(180, 216,231)'], [6.1, 'rgb(227,242,247)'], [7.2, 'rgb(255,254,198)'], [8.3, 'rgb(250,224,154)'], [9.5, 'rgb(242,176,110)'], [10.6, 'rgb(228,116,79)'], [11.7, 'rgb(199,64,50)'], [12.8, 'rgb(152,29,43)']];
         const colors_below = 'rgb(48,57,143)';
 
@@ -108,12 +110,22 @@
           .style('font-size', '10');
 
         //creating axis and scales
+        /*
         //xAxis
         const xScale = d3.scaleLinear()
           .domain([yearMin, yearMax + 1])
           .range([padding, w - padding]);
 
         const xAxis = d3.axisBottom(xScale)
+          .ticks(Math.floor(yearMax - yearMin) / 10);
+*/
+
+        const xScale = d3.scaleTime()
+          .domain([parseX(yearMin), parseX(yearMax)])
+          .range([padding, w - padding]);
+
+        const xAxis = d3.axisBottom(xScale)
+          .tickFormat(formatX)
           .ticks(Math.floor(yearMax - yearMin) / 10);
 
         //yAxis
@@ -152,7 +164,7 @@
           .attr('data-month', d => d.month - 1)
           .attr('data-year', d => d.year)
           .attr('data-temp', d => baseT + d.variance)
-          .attr('x', d => xScale(d.year))
+          .attr('x', d => xScale(parseX(d.year)))
           .attr('y', d => yScale(parse(d.month)))
           .attr('fill', d => {
             for (let i = 0; i < colors.length; i++) {
