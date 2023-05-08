@@ -1,0 +1,30 @@
+html,
+body,
+#title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+
+#chart {
+  background-color: gray;
+}
+
+#tooltip {
+  background-color: rgb(246, 247, 213);
+  border-radius: 5px;
+  padding: 10px;
+  position: absolute;
+}
+
+.vl {
+  border-left: 1px solid black;
+  margin: 10px;
+}
